@@ -9,7 +9,7 @@
 ## 软件功能
 - 自动识别同班同学
 - 可选的代签生效课程
-- 用户白名单机制(防止泛滥成灾)
+- 用户白名单机制(需手动在UserPerm添加)
 - 帮助同使用本软件的同班同学签到
 - 支持签到码/二维码/手势/位置(可自选)/普通签到
 - 支持安卓客户端以及web网页端
@@ -22,6 +22,7 @@
 ## 交流反馈
 - [QQ群: 250369908](https://qm.qq.com/cgi-bin/qm/qr?k=yxbcu6vNZm3JvJElnCRHGbMgmNOADF6H&jump_from=webapi&authKey=+4fa+h7XTvKdeECaauj7wEFLOhVAkrtFNUh0VMcC3bP8eAeUqiXwctprZJOFHfkh)
 - [Telegram: XueBT](https://t.me/XueBT)
+喜欢本项目的话，求点亮Star🙏
 
 
 ## 实机截屏
