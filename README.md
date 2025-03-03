@@ -2,7 +2,7 @@
 <center><div align="center">
 
 <img src="Images/Icons/icon.png" width = 300 height = 300 /></img>
-<h1>学不通</h1>
+<h3 style="fontsize: 50px">学不通</h1>
 <h3>一人签到，全寝睡觉</p>
 </div></center>
 
