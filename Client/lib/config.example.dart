@@ -1,7 +1,6 @@
 // 后端地址
-String config_baseURL = "https://api.xbt.example.top";
-// 每个课程最多展示的签到数量，数量越多加载越慢(必须比服务端设置的小，推荐服务端展示数量-1，或者不改)
-int config_activesLimit = 5;
+String config_baseURL = "https://api.xbt.example.com";
+
 // 签到预设位置，经纬度可以从https://api.map.baidu.com/lbsapi/getpoint/获取(百度坐标系)
 // description为教师端显示的位置信息，可以自己在学习通创建班级作为教师账号，发布位置签到->选择位置界面查看
 // name为客户端位置缩写，可自行命名

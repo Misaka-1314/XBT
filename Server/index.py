@@ -22,9 +22,9 @@ def closeConn(conn, cursor):
   conn.close()
 
 @app.route('/test', methods=['GET', 'POST'])
-def root():
+def test():
   return {
-    "suc": False,
+    "suc": True,
     "msg": "helloworld"
   }
 

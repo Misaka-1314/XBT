@@ -5,7 +5,7 @@ import 'package:xbt_client/config.dart';
 
 String baseURL = config_baseURL;
 
-int activesLimit = config_activesLimit;
+int activesLimit = 6;
 SharedPreferencesAsync prefs = SharedPreferencesAsync();
 
 Map<String, String> IMAGEHEADER = {
