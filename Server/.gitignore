@@ -1,0 +1,7 @@
+# XBT Sensitive files
+*.pem
+mysql.json
+
+# Python pycache
+*.pyc
+**/__pycache__/
