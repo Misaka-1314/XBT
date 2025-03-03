@@ -2,8 +2,8 @@
 <center><div align="center">
 
 <img src="Images/Icons/icon.png" width = 300 height = 300 /></img>
-<div style="font-size: 38px;padding: 0;margin: 0"><strong>学不通</strong></div>
-<h3 style="padding: 8px;margin: 0">一人签到，全寝睡觉</p>
+# 学不通
+### 一人签到，全寝睡觉
 </div></center>
 
 ## 软件功能
@@ -18,6 +18,11 @@
 - 大前端: Flutter(Dart)
 - 后端: Python(Flask, Pymysql)
 - 数据库: Mysql
+
+## 交流反馈
+- [QQ群: 250369908](https://qm.qq.com/cgi-bin/qm/qr?k=yxbcu6vNZm3JvJElnCRHGbMgmNOADF6H&jump_from=webapi&authKey=+4fa+h7XTvKdeECaauj7wEFLOhVAkrtFNUh0VMcC3bP8eAeUqiXwctprZJOFHfkh)
+- [Telegram: XueBT](https://t.me/XueBT)
+
 
 ## 实机截屏
 | **签到主页** | **选课配置页** | **用户设置页** | **登录页** |
