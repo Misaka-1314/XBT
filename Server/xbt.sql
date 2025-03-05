@@ -15,6 +15,19 @@ CREATE TABLE `CourseInfo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Table structure for SignInfo
+-- ----------------------------
+DROP TABLE IF EXISTS `SignInfo`;
+CREATE TABLE `SignInfo` (
+  `activeId` bigint NOT NULL,
+  `startTime` bigint DEFAULT NULL,
+  `endTime` bigint DEFAULT NULL,
+  `signType` int DEFAULT NULL,
+  `ifRefreshEwm` tinyint DEFAULT NULL,
+  PRIMARY KEY (`activeId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
 -- Table structure for SignRecord
 -- ----------------------------
 DROP TABLE IF EXISTS `SignRecord`;

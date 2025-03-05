@@ -100,67 +100,72 @@ class _ConfState extends State<Conf> with RouteAware {
         elevation: 3,
         shadowColor: Theme.of(context).colorScheme.shadow,
       ),
-      body: Container(
-        padding: const EdgeInsets.all(12.0),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await refreshPage(sync: true);
-          },
-          child: ListView(
-            children: [
-              Text(
-                "选择需要代签课程:",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 3),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await refreshPage(sync: true);
+        },
+        child: ListView(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "选择需要代签课程:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 3),
+                  ),
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (int i = 0; i < allCourses.length; i++) ...[
+                          ListTile(
+                            title: Text(
+                              allCourses[i]["name"],
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              allCourses[i]["teacher"],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            leading: ExtendedImage.network(
+                              cache: true,
+                              allCourses[i]["icon"],
+                              headers: IMAGEHEADER,
+                              width: 42,
+                              height: 42,
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(8),
+                              fit: BoxFit.cover,
+                              loadStateChanged: (state) {
+                                return loadStateChangedfunc(state);
+                              },
+                            ),
+                            trailing: Switch(
+                              onChanged: (v) {
+                                onCourseTap(i);
+                              },
+                              value: allCourses[i]["isSelected"],
+                            ),
+                            onTap: () {
+                              onCourseTap(i);
+                            },
+                          )
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Card(
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (int i = 0; i < allCourses.length; i++) ...[
-                      ListTile(
-                        title: Text(
-                          allCourses[i]["name"],
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          allCourses[i]["teacher"],
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        leading: ExtendedImage.network(
-                          cache: true,
-                          allCourses[i]["icon"],
-                          headers: IMAGEHEADER,
-                          width: 42,
-                          height: 42,
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(8),
-                          fit: BoxFit.cover,
-                          loadStateChanged: (state) {
-                            return loadStateChangedfunc(state);
-                          },
-                        ),
-                        trailing: Switch(
-                          onChanged: (v) {
-                            onCourseTap(i);
-                          },
-                          value: allCourses[i]["isSelected"],
-                        ),
-                        onTap: () {
-                          onCourseTap(i);
-                        },
-                      )
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

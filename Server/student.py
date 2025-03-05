@@ -124,6 +124,7 @@ class Student:
     return courses
 
   def getActivesFromCourse(self, cursor, courses: dict) -> list:
+    # 拆分一个Actives一个ActivesDetail 为节流频繁请求detail
     actives = []
     params = {
       "courseId": courses['courseId'],
@@ -131,23 +132,14 @@ class Student:
     }
     resp = requests.get("https://mobilelearn.chaoxing.com/ppt/activeAPI/taskactivelist", params=params, headers=mobileHeader, cookies=self.getCookieJar().get_dict(), verify=False).json()
     for active in resp['activeList'][:getActivesLimit]: 
-      if (active['activeType'] != ActivityTypeEnum.Sign.value):
+      if (active['activeType'] != ActivityTypeEnum.Sign.value): # 目前只支持签到
         continue
-      detail = self.getActiveDetail(cursor, active['id'])
-      url = parse.urlparse(active['url'])
-      par = parse.parse_qs(url.query)
       actives.append({
         "name": active['nameOne'],
         "activeId": active['id'],
-        "startTime": detail['startTime'],
-        "endTime": detail['endTime'],
-        "signType": detail['signType'],
-        "ifRefreshEwm": bool(detail['ifRefreshEwm']),
-        "signRecord": detail['signRecord'],
-        "uid": par['uid'][0], # 学习通uid
       })
     return actives
-  
+
   def getActiveDetail(self, cursor, activeId):
     params = {
       "activePrimaryId": activeId,
@@ -171,14 +163,29 @@ class Student:
         "sourceName": "未签到",
         "signTime": -1,
       }
+    # 这里为高频请求，先从数据库查有没有缓存
+    cursor.execute("SELECT activeId, startTime, endTime, signType, ifRefreshEwm FROM SignInfo WHERE activeId = %s", (activeId))
+    if cursor.rowcount > 0:
+      data = cursor.fetchone()
+      detail = {
+        "startTime": data['startTime'],
+        "endTime": data['endTime'],
+        "signType": data['signType'],
+        "ifRefreshEwm": bool(data['ifRefreshEwm']),
+        "signRecord": signRecord,
+        "uid": self.uid # 向下兼容
+      }
+      return detail
     resp = requests.get("https://mobilelearn.chaoxing.com/newsign/signDetail", params=params, headers=mobileHeader, cookies=self.getCookieJar().get_dict(), verify=False).json()    
     detail = {
       "startTime": int(resp['startTime']['time']),
       "endTime": int(resp['endTime']['time']),
       "signType": int(resp['otherId']),
       "ifRefreshEwm": bool(resp['ifRefreshEwm']),
-      "signRecord": signRecord
+      "signRecord": signRecord,
+      "uid": self.uid # 向下兼容
     }
+    cursor.execute("INSERT IGNORE INTO SignInfo (activeId, startTime, endTime, signType, ifRefreshEwm) VALUES (%s, %s, %s, %s, %s)", (activeId, detail['startTime'], detail['endTime'], detail['signType'], detail['ifRefreshEwm']))
     return detail
   
   def getClassmates(self, cursor, classId, courseId):

@@ -139,7 +139,13 @@ def getCourseAndActivityList():
     selectedCourseList = student.getSelectedCoursesFromDatabase(cursor)
     for course in selectedCourseList:
       actives = student.getActivesFromCourse(cursor, course)
+      for active in actives:
+        activesDetail = student.getActiveDetail(cursor, active['activeId'])
+        # 合并信息
+        for key in activesDetail:
+          active[key] = activesDetail[key]
       course['actives'] = actives
+    # 按照最近的活动时间排序
     selectedCourseList = sorted(selectedCourseList, key=lambda x: x['actives'][0]['startTime'] if x['actives'] else -1, reverse=True)
     closeConn(conn, cursor)
     return {
