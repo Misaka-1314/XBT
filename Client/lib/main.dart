@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:xbt_client/home_page_content/conf.dart';
 import 'package:xbt_client/home_page_content/sign.dart';
 import 'package:xbt_client/home_page_content/user.dart';
 import 'package:xbt_client/utils/constants.dart';
@@ -48,8 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int homepageIndex = 0;
   Map homepageMap = {
     0: const Sign(),
-    1: const Conf(),
-    2: const User(),
+    1: const User(),
   };
 
   @override
@@ -73,7 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '签到'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '配置'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: '用户'),
         ],
         elevation: 1,
