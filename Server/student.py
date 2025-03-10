@@ -139,7 +139,6 @@ class Student:
     return courses
 
   def getActivesFromCourse(self, cursor, courses: dict) -> list:
-    # 拆分一个Actives一个ActivesDetail 为节流频繁请求detail
     actives = []
     params = {
       "courseId": courses['courseId'],

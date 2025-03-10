@@ -74,7 +74,7 @@ IDE使用 `vscode` 作为示例，[下载传送门](https://code.visualstudio.co
 之所以Python开发环境没有放到后端部分，是因为在开始之前需要先使用python作为工具生成项目的公私钥。下面为生成方法
 
 - 在项目根目录中打开终端
-- 命令行输入 `pip install Crypto`
+- 命令行输入 `pip install pycryptodome`
 - 安装好后继续输入 `python ./Tools/genKey.py` 生成你独一无二的密钥对
 - 生成好的公钥位于 `/Client/assets/keys/public.pem` 和 `Server/keys/public.pem` 中
 - 生成好的私钥位于 `/Server/keys/private.pem` 中
