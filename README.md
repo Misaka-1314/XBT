@@ -20,9 +20,9 @@
 - 数据库: Mysql
 
 ## 交流反馈
+喜欢本项目的话，求点亮Star🙏
 - [QQ群: 250369908](https://qm.qq.com/cgi-bin/qm/qr?k=yxbcu6vNZm3JvJElnCRHGbMgmNOADF6H&jump_from=webapi&authKey=+4fa+h7XTvKdeECaauj7wEFLOhVAkrtFNUh0VMcC3bP8eAeUqiXwctprZJOFHfkh)
 - [Telegram: XueBT](https://t.me/XueBT)
-喜欢本项目的话，求点亮Star🙏
 
 
 ## 实机截屏
