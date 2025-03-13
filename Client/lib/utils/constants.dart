@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xbt_client/config.dart';
 
-String baseURL = config_baseURL;
+late String baseURL;
+
+// 初始化baseURL
+Future<void> initBaseURL() async {
+  baseURL = (await prefs.getString('base_url')) ?? config_baseURL;
+}
 
 int activesLimit = 5;
 SharedPreferencesAsync prefs = SharedPreferencesAsync();
