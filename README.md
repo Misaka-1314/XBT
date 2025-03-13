@@ -68,7 +68,7 @@ IDE使用 `vscode` 作为示例，[下载传送门](https://code.visualstudio.co
 - Flutter
 
 #### Python 开发环境
-本项目使用python3，[下载传送门]("https://www.python.org/downloads/")，建议下载3.13版本。需确保安装时勾选添加python到环境变量或安装后手动设置。
+本项目使用python3，[下载传送门](https://www.python.org/downloads/)，建议下载3.13版本。需确保安装时勾选添加python到环境变量或安装后手动设置。
 
 #### 公私钥生成
 之所以Python开发环境没有放到后端部分，是因为在开始之前需要先使用python作为工具生成项目的公私钥。下面为生成方法
