@@ -11,7 +11,9 @@ import 'package:xbt_client/utils/local_json.dart';
 // flutter build web --debug
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // 绑定初始化
   dio.interceptors.add(interceptorsWrapper);
+  await initBaseURL();
   runApp(const MyApp());
 }
 

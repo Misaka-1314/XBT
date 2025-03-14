@@ -6,6 +6,7 @@ import 'package:xbt_client/utils/constants.dart';
 import 'package:xbt_client/utils/dio.dart';
 import 'package:xbt_client/utils/encode.dart';
 import 'package:xbt_client/utils/local_json.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 
 class LoginPage extends StatefulWidget {
   final showBack;
@@ -110,6 +111,35 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.maybePop(context);
                           },
                           child: Text("返回")),
+                          // 添加分隔线和配置按钮
+                          Divider(height: 32),
+                          TextButton.icon(
+                            onPressed: () async {
+                              final result = await showTextInputDialog(
+                                context: context,
+                                title: '配置服务器地址',
+                                message: '请输入服务器地址',
+                                okLabel: '确定',
+                                cancelLabel: '取消',
+                                textFields: [
+                                  DialogTextField(
+                                    hintText: 'https://example.com',
+                                    initialText: await prefs.getString('base_url') ?? baseURL,
+                                  ),
+                                ],
+                              );
+                              if (result != null && result.isNotEmpty) {
+                                await prefs.setString('base_url', result[0]);
+                                baseURL = result[0]; // 直接更新当前运行时的baseURL
+                                SmartDialog.showNotify(
+                                  msg: "服务器地址已更新",
+                                  notifyType: NotifyType.success,
+                                );
+                              }
+                            },
+                            icon: Icon(Icons.settings),
+                            label: Text('配置服务器地址'),
+                          ),
                   ],
                 ),
               ),
