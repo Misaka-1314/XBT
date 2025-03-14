@@ -181,19 +181,26 @@ class Student:
     cursor.execute("SELECT activeId, startTime, endTime, signType, ifRefreshEwm FROM SignInfo WHERE activeId = %s", (activeId))
     if cursor.rowcount > 0:
       data = cursor.fetchone()
-      detail = {
-        "startTime": data['startTime'],
-        "endTime": data['endTime'],
-        "signType": data['signType'],
-        "ifRefreshEwm": bool(data['ifRefreshEwm']),
-        "signRecord": signRecord,
-        "uid": self.uid # 向下兼容
-      }
-      return detail
+      # 判断是否手动结束
+      if data['endTime'] != 64060559999000 : 
+        detail = {
+          "startTime": data['startTime'],
+          "endTime": data['endTime'],
+          "signType": data['signType'],
+          "ifRefreshEwm": bool(data['ifRefreshEwm']),
+          "signRecord": signRecord,
+          "uid": self.uid # 向下兼容
+        }
+        return detail # 非手动结束的签到返回缓存数据
     resp = requests.get("https://mobilelearn.chaoxing.com/newsign/signDetail", params=params, headers=mobileHeader, cookies=self.getCookieJar().get_dict(), verify=False).json()    
+    # 判断结束时间是否为手动结束
+    if resp['endTime'] == None :
+      endTime = 64060559999000
+    else:
+      endTime = int(resp['endTime']['time'])
     detail = {
       "startTime": int(resp['startTime']['time']),
-      "endTime": int(resp['endTime']['time']),
+      "endTime": endTime,
       "signType": int(resp['otherId']),
       "ifRefreshEwm": bool(resp['ifRefreshEwm']),
       "signRecord": signRecord,
