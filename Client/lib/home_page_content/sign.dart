@@ -76,7 +76,7 @@ class _SignState extends State<Sign> with RouteAware {
         Map record = selectedClasses[i]['actives'][j]['signRecord'];
 
         var isActive = selectedClasses[i]['actives'][j]['endTime'] > DateTime.now().millisecondsSinceEpoch;
-        String prefix = isActive ? "进行中" : "已结束";
+        String prefix = isActive ? (selectedClasses[i]['actives'][j]['endTime'] == 64060559999000 ? "进行中" : '进行中(手动结束)') : "已结束";
         if (record['source'] == 'none') {
           selectedClasses[i]['actives'][j]['subtitle'] = prefix;
         } else if (record['source'] == 'self') {

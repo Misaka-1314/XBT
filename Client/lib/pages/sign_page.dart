@@ -133,7 +133,7 @@ class _SignPageState extends State<SignPage> with RouteAware {
             Padding(
               padding: const EdgeInsets.only(bottom: 8, left: 4),
               child: Text(
-                "签到标题: ${widget.signData!["name"]}\n开始时间: ${DateTime.fromMillisecondsSinceEpoch(widget.signData!["startTime"]).toString().substring(0, 19)}\n结束时间: ${DateTime.fromMillisecondsSinceEpoch(widget.signData!["endTime"]).toString().substring(0, 19)}",
+                "签到标题: ${widget.signData!["name"]}\n开始时间: ${DateTime.fromMillisecondsSinceEpoch(widget.signData!["startTime"]).toString().substring(0, 19)}\n结束时间: ${widget.signData!["endTime"] == 64060559999000 ? '手动结束' : DateTime.fromMillisecondsSinceEpoch(widget.signData!["endTime"]).toString().substring(0, 19) }",
                 style: TextStyle(height: 1.15, color: Colors.grey[900]),
               ),
             ),
