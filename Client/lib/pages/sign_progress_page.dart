@@ -65,9 +65,10 @@ class _SignProgressPageState extends State<SignProgressPage> {
     });
 
     for (var classmate in classmates) {
-      if (resp.data['data'][classmate['uid'].toString()]) {
+      var res = resp.data['data'][classmate['uid'].toString()];
+      if (res['suc']) {
         // 签到了
-        subtitle += '${classmate['name']}: 已签到\n';
+        subtitle += '${classmate['name']}: 已签到(${res['comment']})\n';
       } else {
         nonSign.add(classmate);
         subtitle += '${classmate['name']}: 未签到\n';

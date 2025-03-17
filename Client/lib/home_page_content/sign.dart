@@ -81,6 +81,8 @@ class _SignState extends State<Sign> with RouteAware {
           selectedClasses[i]['actives'][j]['subtitle'] = prefix;
         } else if (record['source'] == 'self') {
           selectedClasses[i]['actives'][j]['subtitle'] = prefix + '(本人签到)';
+        } else if (record['source'] == 'xxt') {
+          selectedClasses[i]['actives'][j]['subtitle'] = prefix + '(学习通)';
         } else if (record['source'] == 'agent') {
           selectedClasses[i]['actives'][j]['subtitle'] = prefix + '(${record['sourceName']}代签)';
         }

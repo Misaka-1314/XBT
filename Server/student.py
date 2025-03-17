@@ -165,12 +165,19 @@ class Student:
       data = cursor.fetchone()
       source = data['source']
       signTime = data['signTime']
-      cursor.execute("SELECT name FROM UserInfo WHERE uid = %s", (source))
-      signRecord = {
-        "source": 'self' if source == self.uid else 'agent' ,
-        "sourceName": cursor.fetchone()['name'],
-        "signTime": signTime,
-      }
+      if source == -1:
+        signRecord = {
+          "source": 'xxt',
+          "sourceName": "学习通",
+          "signTime": signTime,
+        }
+      else:
+        cursor.execute("SELECT name FROM UserInfo WHERE uid = %s", (source))
+        signRecord = {
+          "source": 'self' if source == self.uid else 'agent' ,
+          "sourceName": cursor.fetchone()['name'],
+          "signTime": signTime,
+        }
     else:
       signRecord = {
         "source": 'none',
@@ -189,7 +196,6 @@ class Student:
           "signType": data['signType'],
           "ifRefreshEwm": bool(data['ifRefreshEwm']),
           "signRecord": signRecord,
-          "uid": self.uid # 向下兼容
         }
         return detail # 非手动结束的签到返回缓存数据
     resp = requests.get("https://mobilelearn.chaoxing.com/newsign/signDetail", params=params, headers=mobileHeader, cookies=self.getCookieJar().get_dict(), verify=False).json()    
@@ -204,7 +210,6 @@ class Student:
       "signType": int(resp['otherId']),
       "ifRefreshEwm": bool(resp['ifRefreshEwm']),
       "signRecord": signRecord,
-      "uid": self.uid # 向下兼容
     }
     cursor.execute("INSERT IGNORE INTO SignInfo (activeId, startTime, endTime, signType, ifRefreshEwm) VALUES (%s, %s, %s, %s, %s)", (activeId, detail['startTime'], detail['endTime'], detail['signType'], detail['ifRefreshEwm']))
     return detail
@@ -374,6 +379,24 @@ class Student:
     classmates = [self.uid] + classmates
     result = {}
     for uid in classmates:
-      cursor.execute("SELECT uid FROM SignRecord WHERE activeId = %s AND uid = %s" % (activeId, uid))
-      result[uid] = cursor.rowcount > 0
+      cursor.execute("SELECT source FROM SignRecord WHERE activeId = %s AND uid = %s" % (activeId, uid))
+      if cursor.rowcount == 0:
+        result[uid] = {
+          'suc': False,
+          'comment': ""
+        }
+        continue
+      source = cursor.fetchone()['source']
+      comment = ""
+      if source == -1:
+        comment = '学习通'
+      elif source == uid:
+        comment = '本人签到'
+      else:
+        cursor.execute("SELECT name FROM UserInfo WHERE uid = %s", (source,))
+        comment = cursor.fetchone()['name'] + "代签"
+      result[uid] = {
+        'suc': True,
+        'comment': comment
+      }
     return result

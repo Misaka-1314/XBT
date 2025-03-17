@@ -1,13 +1,10 @@
-import requests
 import warnings
-import threading
 import time
 from flask import Flask, request
 from student import *
 from requests.packages import urllib3
 from utils.aes import *
 from middleware import *
-import pymysql
 
 urllib3.disable_warnings()
 warnings.filterwarnings("ignore")
@@ -197,6 +194,22 @@ def sign():
     fixedParams = request.json['fixedParams']
     specialParams = request.json['specialParams']
     signType = request.json['signType']
+    # 检查是否已经签到（这里客户端检查过了，通信延迟+无锁，这里服务端再来一遍）
+    cursor.execute("select source from SignRecord where uid = %s and activeId = %s", (student.uid, fixedParams['activeId']))
+    if cursor.rowcount > 0:
+      closeConn(conn, cursor)
+      source = cursor.fetchone()['source']
+      if source == -1:
+        return {
+          'suc': False,
+          'msg': '您已签到过了(学习通)'
+        }
+      cursor.execute("select name from UserInfo where uid = %s", (source,))
+      name = cursor.fetchone()['name']
+      return {
+        'suc': False,
+        'msg': f'您已签到过了({name}代签)' 
+      }
     try:
       if (signType == SignTypeEnum.QRCode.value):
         student.preSign(fixedParams, specialParams['c'], specialParams['enc'])
@@ -210,6 +223,8 @@ def sign():
         'msg': str(e)
       }
     if (result != "success"):
+      if (result == "您已签到过了"): #在学习通直接签到过了 并 在数据库没有记录
+        cursor.execute("insert into SignRecord (uid, activeId, source, signTime) values (%s, %s, %s, %s)", (student.uid, fixedParams['activeId'], -1, int(time.time())))
       closeConn(conn, cursor)
       return {
         'suc': False,
