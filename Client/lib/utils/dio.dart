@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:xbt_client/config.dart';
 import 'package:xbt_client/pages/login_page.dart';
 import 'package:xbt_client/utils/constants.dart';
 
@@ -30,6 +31,7 @@ InterceptorsWrapper interceptorsWrapper = InterceptorsWrapper(
         }),
       );
     }
+    options.headers['version'] = version;
     options.headers["token"] = token!;
     return handler.next(options);
   },

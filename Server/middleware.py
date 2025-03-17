@@ -7,6 +7,7 @@ import utils.log
 import pymysql
 from student import Student
 
+VERSION = '1.0.1'
 
 log = utils.log.Log('Flask')
 
@@ -23,6 +24,9 @@ def after_request(resp: Response):
 def before_request():
   conn = POOL.connection()
   cursor = conn.cursor(pymysql.cursors.DictCursor)
+  version = request.headers.get('version')
+  if not version or version != VERSION:
+    return {'suc': False, 'msg': f'客户端版本过低, 请更新v{VERSION}'}
   if request.path not in IGNORE_TOKEN_URL:
     token = request.headers.get('token')
     if not token or token == '':
