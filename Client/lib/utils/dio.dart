@@ -13,12 +13,13 @@ BuildContext? dioContext = null;
 
 InterceptorsWrapper interceptorsWrapper = InterceptorsWrapper(
   onRequest: (options, handler) async {
+    options.headers['version'] = version;
     for (var ignoreUrl in IGNORETOKENURL) {
       if (options.path.contains(ignoreUrl)) {
         return handler.next(options);
       }
     }
-    
+
     String? token = await prefs.getString("token");
     if (token == null || token == '') {
       SmartDialog.showToast('请先登录');
@@ -31,7 +32,6 @@ InterceptorsWrapper interceptorsWrapper = InterceptorsWrapper(
         }),
       );
     }
-    options.headers['version'] = version;
     options.headers["token"] = token!;
     return handler.next(options);
   },
