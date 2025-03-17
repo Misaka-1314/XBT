@@ -197,7 +197,7 @@ class Student:
           "ifRefreshEwm": bool(data['ifRefreshEwm']),
           "signRecord": signRecord,
         }
-        return detail # 非手动结束的签到返回缓存数据
+        return detail # 非处于等待手动结束的签到 返回缓存数据
     resp = requests.get("https://mobilelearn.chaoxing.com/newsign/signDetail", params=params, headers=mobileHeader, cookies=self.getCookieJar().get_dict(), verify=False).json()    
     # 判断结束时间是否为手动结束
     if resp['endTime'] == None :
