@@ -42,6 +42,22 @@ class _SignPageState extends State<SignPage> with RouteAware {
   
   // 添加上次设置的缩放值记录
   double _lastSetZoom = 1.0;
+  
+  // 标记相机控制器是否已经初始化
+  bool _isControllerInitialized = false;
+  
+  // 确保位置预设列表有效
+  List<Map<String, dynamic>> _getLocationPresets() {
+    // 检查locationPreset是否为空，如果为空则提供备用数据
+    if (locationPreset.isEmpty) {
+      print('警告: locationPreset为空，使用备用数据');
+      return [
+        {"name": "学校", "lng": '116.397428', "lat": '39.90923', "description": "北京市东城区东华门街道"},
+        {"name": "图书馆", "lng": '116.397428', "lat": '39.90923', "description": "北京市东城区东华门街道-图书馆"},
+      ];
+    }
+    return locationPreset;
+  }
 
   @override
   void reassemble() {
@@ -65,28 +81,68 @@ class _SignPageState extends State<SignPage> with RouteAware {
 
   @override
   void initState() {
+    // 初始化位置数据
+    print('初始化位置数据: ${_getLocationPresets()}');
+    
     updateClassmates();
-    // 使用简单的初始化方式，参考官方示例
-    _scannerController = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
-      facing: CameraFacing.back,
-      formats: [BarcodeFormat.qrCode], // 仅限QR码提高性能
-    );
-    // 简化初始化流程
+    
+    // 重新初始化相机控制器
     _initializeCamera();
     super.initState();
   }
 
-  // 简化相机初始化流程
+  // 彻底重构相机初始化流程
   void _initializeCamera() async {
     try {
+      print('开始重新初始化相机...');
+      
+      // 检查控制器是否已初始化，而不是检查它是否为null
+      if (_isControllerInitialized) {
+        print('停止现有相机...');
+        try {
+          await _scannerController.stop();
+          _scannerController.dispose();
+        } catch (e) {
+          print('停止现有相机出错: $e');
+        }
+      }
+      
+      // 重新创建控制器
+      print('创建新的相机控制器...');
+      _scannerController = MobileScannerController(
+        detectionSpeed: DetectionSpeed.normal,
+        facing: CameraFacing.back,
+        formats: [BarcodeFormat.qrCode], // 仅限QR码提高性能
+        returnImage: false, // 禁用返回图像以提高性能
+      );
+      _isControllerInitialized = true;
+      
       // 启动相机
-      await _scannerController.start();
-      _isCameraStarted = true;
-      _isZoomInitialized = true;
+      print('尝试启动相机...');
+      bool started = false;
+      
+      try {
+        // 修复start()调用方式，mobile_scanner库的start()没有返回值
+        await _scannerController.start();
+        started = true;
+        print('相机启动成功');
+      } catch (e) {
+        print('相机启动异常: $e');
+        started = false;
+      }
+      
+      // 更新状态
+      _isCameraStarted = started;
+      _isZoomInitialized = started;
+      
+      print('相机初始化状态: 启动=$_isCameraStarted, 缩放初始化=$_isZoomInitialized');
+      
       if (mounted) setState(() {});
     } catch (e) {
       print('初始化相机失败: $e');
+      _isCameraStarted = false;
+      _isZoomInitialized = false;
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('相机初始化失败，请检查相机权限或重启应用')),
@@ -97,19 +153,36 @@ class _SignPageState extends State<SignPage> with RouteAware {
   
   // 简化重置缩放方法
   void _resetZoom() {
-    if (!_isCameraStarted) return;
+    if (!_isCameraStarted || !_isControllerInitialized) {
+      print('相机未准备好，无法重置缩放');
+      return;
+    }
     
-    setState(() {
-      _currentZoom = 0.0;
-      _baseZoom = 0.0;
-      _scannerController.setZoomScale(0.0);
-    });
+    try {
+      setState(() {
+        _currentZoom = 0.0;
+        _baseZoom = 0.0;
+        _scannerController.setZoomScale(0.0);
+      });
+      print('已重置缩放');
+    } catch (e) {
+      print('重置缩放失败: $e');
+    }
   }
 
   @override
   void dispose() {
     MyApp.routeObserver.unsubscribe(this);
-    _scannerController.dispose(); // 释放资源
+    // 安全释放相机资源
+    if (_isControllerInitialized) {
+      try {
+        _scannerController.stop();
+        _scannerController.dispose();
+        print('相机资源已释放');
+      } catch (e) {
+        print('释放相机资源时出错: $e');
+      }
+    }
     super.dispose();
   }
 
@@ -219,22 +292,32 @@ class _SignPageState extends State<SignPage> with RouteAware {
                         leading: Icon(SignType.location.icon,
                             color: Theme.of(context).colorScheme.primary),
                         onTap: () async {
-                          var res = await showConfirmationDialog(
-                            context: context,
-                            title: "请选择位置",
-                            okLabel: "确定",
-                            cancelLabel: "取消",
-                            contentMaxHeight: 400,
-                            actions: [
-                              for (int i = 0; i < locationPreset.length; i++)
-                                AlertDialogAction(
-                                    key: i, label: locationPreset[i]['name'])
-                            ],
-                          );
-                          if (res == null) return;
-                          setState(() {
-                            locationData = locationPreset[res];
-                          });
+                          List<Map<String, dynamic>> locations = _getLocationPresets();
+                          print('点击位置选择，可用位置数: ${locations.length}');
+                          try {
+                            var res = await showConfirmationDialog(
+                              context: context,
+                              title: "请选择位置",
+                              okLabel: "确定",
+                              cancelLabel: "取消",
+                              contentMaxHeight: 400,
+                              actions: [
+                                for (int i = 0; i < locations.length; i++)
+                                  AlertDialogAction(
+                                      key: i, label: locations[i]['name']!)
+                              ],
+                            );
+                            print('选择结果: $res');
+                            if (res == null) return;
+                            setState(() {
+                              locationData = locations[res];
+                            });
+                          } catch (e) {
+                            print('显示位置选择对话框失败: $e');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('位置选择失败，请检查配置或重启应用')),
+                            );
+                          }
                         },
                       ),
                       Container(
@@ -348,134 +431,234 @@ class _SignPageState extends State<SignPage> with RouteAware {
               Card(
                 elevation: 4,
                 clipBehavior: Clip.antiAlias,
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return SizedBox(
-                    height: constraints.maxWidth,
-                    width: constraints.maxWidth,
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: Container(
-                        width: 1000,
-                        height: 1000,
-                        child: GestureDetector(
-                          onScaleStart: (ScaleStartDetails details) {
-                            if (!_isCameraStarted || !_isZoomInitialized) return;
-                            // 记录缩放开始时的基准值
-                            _baseZoom = _currentZoom;
-                          },
-                          onScaleUpdate: (ScaleUpdateDetails details) {
-                            if (!_isCameraStarted) return;
-                            
-                            // 计算新的缩放值
-                            double newZoom = _baseZoom * details.scale;
-                            newZoom = newZoom.clamp(_minZoom, _maxZoom);
-                            
-                            // 只在有明显变化时更新
-                            if ((newZoom - _currentZoom).abs() > 0.1) {
-                              // 一步完成状态更新和缩放设置
-                              setState(() {
-                                _currentZoom = newZoom;
-                                _scannerController.setZoomScale(newZoom);
-                              });
-                            }
-                          },
-                          onScaleEnd: (ScaleEndDetails details) {
-                            if (!_isCameraStarted || !_isZoomInitialized) return;
-                            // 缩放结束，更新基准值
-                            _baseZoom = _currentZoom;
-                          },
-                          child: Stack(
-                            children: [
-                              MobileScanner(
-                                controller: _scannerController,
-                                onDetect: (BarcodeCapture capture) {
-                                  final List<Barcode> barcodes =
-                                      capture.barcodes;
-                                  for (final barcode in barcodes) {
-                                    if (barcode.rawValue == null) continue;
-                                    if (barcode.rawValue!.indexOf(
-                                            'mobilelearn.chaoxing.com') == -1) {
-                                      SmartDialog.showNotify(
-                                          msg: "请扫描学习通签到二维码",
-                                          notifyType: NotifyType.warning);
-                                      return;
-                                    }
-                                    SmartDialog.showNotify(
-                                        msg: "扫描成功",
-                                        notifyType: NotifyType.success);
-                                    String enc = barcode.rawValue!
-                                        .split('&enc=')[1]
-                                        .split('&')[0];
-                                    String c = barcode.rawValue!
-                                        .split('&c=')[1]
-                                        .split('&')[0];
-                                    print('enc: $enc, c: $c');
-                                    sign({"enc": enc, "c": c}, SignType.qrCode);
-                                    setState(() {
-                                      result = barcode;
-                                    });
-                                    break; // 只处理第一个有效二维码
+                child: Column(
+                  children: [
+                    // 位置选择部分
+                    ListTile(
+                      title: Text(
+                        locationData == null ? '点击选择位置（可选）' : locationData!['name']!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 18),
+                      ),
+                      subtitle: locationData == null
+                          ? null
+                          : Text(
+                              locationData!['description']!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                      leading: Icon(SignType.location.icon,
+                          color: Theme.of(context).colorScheme.primary),
+                      onTap: () async {
+                        List<Map<String, dynamic>> locations = _getLocationPresets();
+                        print('点击位置选择，可用位置数: ${locations.length}');
+                        try {
+                          var res = await showConfirmationDialog(
+                            context: context,
+                            title: "请选择位置",
+                            okLabel: "确定",
+                            cancelLabel: "取消",
+                            contentMaxHeight: 400,
+                            actions: [
+                              for (int i = 0; i < locations.length; i++)
+                                AlertDialogAction(
+                                    key: i, label: locations[i]['name']!)
+                            ],
+                          );
+                          print('选择结果: $res');
+                          if (res == null) return;
+                          setState(() {
+                            locationData = locations[res];
+                          });
+                        } catch (e) {
+                          print('显示位置选择对话框失败: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('位置选择失败，请检查配置或重启应用')),
+                          );
+                        }
+                      },
+                    ),
+                    Container(
+                      width: double.infinity,
+                      height: 1,
+                      color: Colors.grey[300],
+                    ),
+                    // 扫码部分
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: ClipRect(
+                        child: Stack(
+                          children: [
+                            // 完全重写相机预览部分
+                            Container(
+                              color: Colors.black,
+                              child: Builder(
+                                builder: (context) {
+                                  // 显示加载指示器，直到相机启动
+                                  if (!_isCameraStarted || !_isControllerInitialized) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CircularProgressIndicator(),
+                                          SizedBox(height: 16),
+                                          Text('正在启动相机...', style: TextStyle(color: Colors.white)),
+                                          SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              print('手动尝试重新初始化相机');
+                                              _initializeCamera();
+                                            },
+                                            child: Text('重试'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                  
+                                  print('尝试渲染相机预览...');
+                                  // 使用更简单的MobileScanner实现
+                                  try {
+                                    return MobileScanner(
+                                      controller: _scannerController,
+                                      fit: BoxFit.cover,
+                                      onDetect: (BarcodeCapture capture) {
+                                        print('检测到条形码！');
+                                        final List<Barcode> barcodes = capture.barcodes;
+                                        for (final barcode in barcodes) {
+                                          if (barcode.rawValue == null) continue;
+                                          print('扫描到内容: ${barcode.rawValue}');
+                                          if (barcode.rawValue!.indexOf('mobilelearn.chaoxing.com') == -1) {
+                                            SmartDialog.showNotify(
+                                                msg: "请扫描学习通签到二维码",
+                                                notifyType: NotifyType.warning);
+                                            return;
+                                          }
+                                          SmartDialog.showNotify(
+                                              msg: "扫描成功",
+                                              notifyType: NotifyType.success);
+                                          String enc = barcode.rawValue!.split('&enc=')[1].split('&')[0];
+                                          String c = barcode.rawValue!.split('&c=')[1].split('&')[0];
+                                          
+                                          Map<String, dynamic> args = {
+                                            "enc": enc,
+                                            "c": c,
+                                          };
+                                          
+                                          if (locationData != null) {
+                                            args['location'] = {
+                                              "result": 1,
+                                              "latitude": double.parse(locationData!['lat']),
+                                              "longitude": double.parse(locationData!['lng']),
+                                              "mockData": {
+                                                "strategy": 0,
+                                                "probability": -1
+                                              },
+                                              "address": locationData!['description']
+                                            };
+                                          }
+                                          
+                                          sign(args, SignType.qrCode);
+                                          setState(() {
+                                            result = barcode;
+                                          });
+                                          break;
+                                        }
+                                      },
+                                    );
+                                  } catch (e) {
+                                    print('渲染相机预览时出错: $e');
+                                    // 渲染失败时显示错误信息
+                                    return Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.error, color: Colors.red, size: 48),
+                                          SizedBox(height: 16),
+                                          Text('相机预览出错', style: TextStyle(color: Colors.white)),
+                                          SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _isCameraStarted = false;
+                                                _isControllerInitialized = false;
+                                              });
+                                              _initializeCamera();
+                                            },
+                                            child: Text('重新初始化相机'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   }
                                 },
                               ),
-                              // 添加重置缩放按钮
-                              Positioned(
-                                top: 16,
-                                right: 16,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: IconButton(
-                                    icon: Icon(Icons.restart_alt, color: Colors.white),
-                                    onPressed: _resetZoom,
-                                  ),
+                            ),
+                            // 重置缩放按钮
+                            Positioned(
+                              top: 16,
+                              right: 16,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.restart_alt, color: Colors.white),
+                                  onPressed: _resetZoom,
                                 ),
                               ),
-                              // 添加缩放滑动条
-                              Positioned(
-                                bottom: 16, // 调整位置到底部
-                                left: 16,
-                                right: 16,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.zoom_out, color: Colors.white, size: 20),
-                                      Expanded(
-                                        child: Slider(
-                                          value: _currentZoom,
-                                          min: _minZoom,
-                                          max: _maxZoom,
-                                          onChanged: (value) {
-                                            if (!_isCameraStarted) return;
-                                            
-                                            // 直接在setState中设置缩放值
+                            ),
+                            // 缩放滑动条
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              right: 16,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.zoom_out, color: Colors.white, size: 20),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _currentZoom,
+                                        min: _minZoom,
+                                        max: _maxZoom,
+                                        onChanged: (value) {
+                                          if (!_isCameraStarted || !_isControllerInitialized) return;
+                                          try {
                                             setState(() {
                                               _currentZoom = value;
                                               _baseZoom = value;
                                               _scannerController.setZoomScale(value);
+                                              print('设置缩放比例: $value');
                                             });
-                                          },
-                                        ),
+                                          } catch (e) {
+                                            print('设置缩放失败: $e');
+                                          }
+                                        },
                                       ),
-                                      Icon(Icons.zoom_in, color: Colors.white, size: 20),
-                                    ],
-                                  ),
+                                    ),
+                                    Icon(Icons.zoom_in, color: Colors.white, size: 20),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  );
-                }),
+                  ],
+                ),
               ),
             if (widget.signData!["signType"] == SignType.normal.id)
               Card(

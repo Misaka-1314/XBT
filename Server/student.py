@@ -311,17 +311,22 @@ class Student:
 
   def signQRCode(self, fixedParams, specialParams):
     params = {
-      'enc': specialParams['enc'],
-      'name': self.name,
-      'activeId': fixedParams['activeId'],
-      'uid': fixedParams['uid'],
-      'clientip': '',
-      'useragent': '',
-      'latitude': '-1',
-      'longitude': '-1',
-      'fid': '',
-      'appType': '15',
+        'enc': specialParams['enc'],
+        'name': self.name,
+        'activeId': fixedParams['activeId'],
+        'uid': fixedParams['uid'],
+        'clientip': '',
+        'useragent': '',
+        'latitude': '-1',
+        'longitude': '-1',
+        'fid': '',
+        'appType': '15',
     }
+    
+    # 如果提供了location参数，添加到请求参数中
+    if 'location' in specialParams:
+        params['location'] = json.dumps(specialParams['location'], ensure_ascii=False)
+    print(params)  # 添加调试输出
     return params
 
   def signGesture(self, fixedParams, specialParams):
