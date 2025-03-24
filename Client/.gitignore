@@ -47,3 +47,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# 排除 Android C/C++ 构建相关的临时文件
+/android/app/.cxx/
