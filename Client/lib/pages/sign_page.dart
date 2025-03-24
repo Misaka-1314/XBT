@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'dart:async';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:coordtransform_dart/coordtransform_dart.dart';
 import 'package:extended_image/extended_image.dart';
@@ -12,6 +12,8 @@ import 'package:xbt_client/pages/sign_progress_page.dart';
 import 'package:xbt_client/utils/constants.dart';
 import 'package:xbt_client/utils/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:xbt_client/services/qr_code_polling_service.dart';
+
 
 class SignPage extends StatefulWidget {
   final Map<String, dynamic>? signData;
@@ -59,6 +61,10 @@ class _SignPageState extends State<SignPage> with RouteAware {
     return locationPreset;
   }
 
+  // 添加QR码轮询服务
+  final QRPollingService _qrPollingService = QRPollingService();
+  Timer? _pollingStatusTimer;
+
   @override
   void reassemble() {
     super.reassemble();
@@ -88,6 +94,14 @@ class _SignPageState extends State<SignPage> with RouteAware {
     
     // 重新初始化相机控制器
     _initializeCamera();
+    
+    // 添加定时检查轮询状态的计时器
+    _pollingStatusTimer = Timer.periodic(Duration(seconds: 1), (_) {
+      if (mounted && _qrPollingService.lastUpdateTime != null) {
+        setState(() {}); // 触发UI更新显示最新的轮询状态
+      }
+    });
+    
     super.initState();
   }
 
@@ -137,6 +151,9 @@ class _SignPageState extends State<SignPage> with RouteAware {
       
       print('相机初始化状态: 启动=$_isCameraStarted, 缩放初始化=$_isZoomInitialized');
       
+      // 开始轮询服务
+      _qrPollingService.startPolling(_scannerController);
+      
       if (mounted) setState(() {});
     } catch (e) {
       print('初始化相机失败: $e');
@@ -183,6 +200,8 @@ class _SignPageState extends State<SignPage> with RouteAware {
         print('释放相机资源时出错: $e');
       }
     }
+    _pollingStatusTimer?.cancel();
+    _qrPollingService.stopPolling();
     super.dispose();
   }
 
@@ -201,9 +220,20 @@ class _SignPageState extends State<SignPage> with RouteAware {
     SmartDialog.dismiss();
   }
 
+  // 修改sign方法，使用最新的enc值
   void sign(Map<String, dynamic> args, SignType signType) async {
     if (isSigning) return;
     isSigning = true;
+    
+    // 对于二维码签到，使用最新的轮询数据
+    if (signType == SignType.qrCode && _qrPollingService.currentEnc != null) {
+      // 更新enc和c值为最新
+      args['enc'] = _qrPollingService.currentEnc;
+      args['c'] = _qrPollingService.currentC;
+      
+      print('使用最新的enc值签到: ${args['enc']?.substring(0, 8)}...');
+    }
+    
     Map<String, dynamic> fixedParams = {
       "courseId": widget.courseData!['courseId'],
       "classId": widget.courseData!['classId'],
@@ -211,6 +241,7 @@ class _SignPageState extends State<SignPage> with RouteAware {
       "ifRefreshEwm": widget.signData!['ifRefreshEwm'],
       "uid": widget.signData!['uid'],
     };
+    
     Navigator.push(
       context,
       PageRouteBuilder(
@@ -226,6 +257,7 @@ class _SignPageState extends State<SignPage> with RouteAware {
               signState: (v) {
                 isSigning = v;
               },
+              qrPollingService: _qrPollingService, // 传递轮询服务
             ),
           );
         },
@@ -528,46 +560,27 @@ class _SignPageState extends State<SignPage> with RouteAware {
                                       controller: _scannerController,
                                       fit: BoxFit.cover,
                                       onDetect: (BarcodeCapture capture) {
-                                        print('检测到条形码！');
-                                        final List<Barcode> barcodes = capture.barcodes;
-                                        for (final barcode in barcodes) {
-                                          if (barcode.rawValue == null) continue;
-                                          print('扫描到内容: ${barcode.rawValue}');
-                                          if (barcode.rawValue!.indexOf('mobilelearn.chaoxing.com') == -1) {
+                                        // 使用轮询服务处理扫描结果
+                                        _qrPollingService.handleScanResult(capture);
+                                        
+                                        // 如果之前没有扫描结果，显示成功通知
+                                        if (result == null && capture.barcodes.isNotEmpty) {
+                                          final barcode = capture.barcodes.first;
+                                          if (barcode.rawValue != null && 
+                                              barcode.rawValue!.contains('mobilelearn.chaoxing.com')) {
+                                            
+                                            // 不再在这里直接调用sign方法，而是显示通知让用户知道可以点击"签到"按钮
                                             SmartDialog.showNotify(
-                                                msg: "请扫描学习通签到二维码",
-                                                notifyType: NotifyType.warning);
-                                            return;
-                                          }
-                                          SmartDialog.showNotify(
-                                              msg: "扫描成功",
+                                              msg: "二维码识别成功，持续获取最新二维码中",
                                               notifyType: NotifyType.success);
-                                          String enc = barcode.rawValue!.split('&enc=')[1].split('&')[0];
-                                          String c = barcode.rawValue!.split('&c=')[1].split('&')[0];
-                                          
-                                          Map<String, dynamic> args = {
-                                            "enc": enc,
-                                            "c": c,
-                                          };
-                                          
-                                          if (locationData != null) {
-                                            args['location'] = {
-                                              "result": 1,
-                                              "latitude": double.parse(locationData!['lat']),
-                                              "longitude": double.parse(locationData!['lng']),
-                                              "mockData": {
-                                                "strategy": 0,
-                                                "probability": -1
-                                              },
-                                              "address": locationData!['description']
-                                            };
+                                            
+                                            setState(() {
+                                              result = barcode;
+                                            });
                                           }
-                                          
-                                          sign(args, SignType.qrCode);
-                                          setState(() {
-                                            result = barcode;
-                                          });
-                                          break;
+                                        } else if (_qrPollingService.lastUpdateTime != null) {
+                                          // 检测到二维码变化时更新状态
+                                          if (mounted) setState(() {});
                                         }
                                       },
                                     );
@@ -653,6 +666,88 @@ class _SignPageState extends State<SignPage> with RouteAware {
                                 ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // 扫描状态指示器
+                    if (_qrPollingService.lastUpdateTime != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        color: Colors.black87,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '已获取最新二维码 (${DateTime.now().difference(_qrPollingService.lastUpdateTime!).inSeconds}秒前)',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    // 修改签到按钮逻辑，始终使用最新的enc值
+                    Container(
+                      width: double.infinity,
+                      height: 50,
+                      color: _qrPollingService.currentEnc == null
+                          ? Colors.grey[500]
+                          : Theme.of(context).colorScheme.primary,
+                      child: MaterialButton(
+                        onPressed: () {
+                          if (_qrPollingService.currentEnc == null) {
+                            SmartDialog.showNotify(
+                              msg: "请先扫描二维码",
+                              notifyType: NotifyType.warning);
+                            return;
+                          }
+                          
+                          debugPrint('开始签到，使用最新ENC值：${_qrPollingService.currentEnc!.substring(0, 8)}...');
+                          
+                          Map<String, dynamic> args = {
+                            "enc": _qrPollingService.currentEnc,
+                            "c": _qrPollingService.currentC,
+                          };
+                          
+                          if (locationData != null) {
+                            args['location'] = {
+                              "result": 1,
+                              "latitude": double.parse(locationData!['lat']),
+                              "longitude": double.parse(locationData!['lng']),
+                              "mockData": {
+                                "strategy": 0,
+                                "probability": -1
+                              },
+                              "address": locationData!['description']
+                            };
+                          }
+                          
+                          sign(args, SignType.qrCode);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "使用最新二维码签到",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold),
+                            ),
+                            if (_qrPollingService.lastUpdateTime != null)
+                              Text(
+                                " (${DateTime.now().difference(_qrPollingService.lastUpdateTime!).inSeconds}秒前)",
+                                style: TextStyle(color: Colors.white, fontSize: 14),
+                              ),
                           ],
                         ),
                       ),
