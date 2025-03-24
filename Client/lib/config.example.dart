@@ -1,5 +1,5 @@
 // 软件版本号
-String version = "1.0.1";
+String version = "1.1.0";
 
 // 后端地址
 String config_baseURL = "https://api.xbt.example.com";
