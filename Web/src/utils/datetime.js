@@ -1,12 +1,12 @@
-const getZeroOclockOfDay = (dateTime) => {
+export const getZeroOclockOfDay = (dateTime) => {
   return new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate());
 };
 
-const padLeft = (num, length = 2, fill = '0') => {
+export const padLeft = (num, length = 2, fill = '0') => {
   return num.toString().padStart(length, fill);
 };
 
-const getChineseStringByDatetime = (dateTime, now = null) => {
+export const getChineseStringByDatetime = (dateTime, now = null) => {
   now = now ?? new Date();
 
   const isSameDay = dateTime.getFullYear() === now.getFullYear() &&
