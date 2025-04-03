@@ -42,6 +42,10 @@ mobileHeader = {
 
 transferKey = "u2oh6Vu^HWe4_AES"
 
+# QR码刷新相关配置
+qrCodeRefreshMinInterval = 2  # 最小刷新间隔(秒)
+qrCodeEncCacheTime = 60       # ENC值缓存时间(秒)
+
 # 参考于kuizuo大佬的项目(目前貌似不维护了)
 # https://github.com/kuizuo/chaoxing-sign
 class ActivityTypeEnum(Enum):

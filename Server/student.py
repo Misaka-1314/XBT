@@ -226,7 +226,11 @@ class Student:
 
   # 参考于kuizuo大佬的项目(目前貌似不维护了)
   # https://github.com/kuizuo/chaoxing-sign
+  # 预签到方法添加更多调试信息
   def preSign(self, fixedParams: dict, code=None, enc=None):
+    # 记录预签到参数
+    self.log.i(f"开始预签到: activeId={fixedParams.get('activeId')}, uid={fixedParams.get('uid')}, enc={enc[:8] + '...' if enc else 'None'}")
+    
     # First request (equivalent to preSign GET request)
     params = {
       'courseId': fixedParams.get('courseId', ''),
@@ -275,7 +279,7 @@ class Student:
     soup = BeautifulSoup(html, 'html.parser')
     status = soup.select_one('#statuscontent')
     status_text = ''
-    if status:
+    if (status):
         status_text = re.sub(r'[\n\s]', '', status.get_text().strip())
     self.log.i("预签到状态: "+ status_text)
     if status_text:
@@ -293,8 +297,18 @@ class Student:
       params = self.signLocation(fixedParams, specialParams)
     elif signType == SignTypeEnum.Code.value:
       params = self.signCode(fixedParams, specialParams)
+    
+    # 发送签到请求前记录完整请求信息以便调试
+    if signType == SignTypeEnum.QRCode.value:
+      self.log.i(f"发送二维码签到请求: activeId={fixedParams.get('activeId')}, enc={params.get('enc')[:8]}...")
+    
     resp = requests.get('https://mobilelearn.chaoxing.com/pptSign/stuSignajax', params=params, cookies=self.getCookieJar().get_dict(), headers=mobileHeader)
-    return resp.text
+    result = resp.text
+    
+    # 记录签到结果
+    self.log.i(f"签到结果: {result}")
+    
+    return result
 
   def signNormal(self, fixedParams, specialParams):
     params = {
@@ -310,18 +324,31 @@ class Student:
     return params
 
   def signQRCode(self, fixedParams, specialParams):
+    # 检查必要参数
+    if 'enc' not in specialParams or not specialParams['enc']:
+      self.log.i("二维码签到缺少必要参数enc")
+      raise Exception("缺少必要的签到参数")
+      
     params = {
-      'enc': specialParams['enc'],
-      'name': self.name,
-      'activeId': fixedParams['activeId'],
-      'uid': fixedParams['uid'],
-      'clientip': '',
-      'useragent': '',
-      'latitude': '-1',
-      'longitude': '-1',
-      'fid': '',
-      'appType': '15',
+        'enc': specialParams['enc'],
+        'name': self.name,
+        'activeId': fixedParams['activeId'],
+        'uid': fixedParams['uid'],
+        'clientip': '',
+        'useragent': '',
+        'latitude': '-1',
+        'longitude': '-1',
+        'fid': '',
+        'appType': '15',
     }
+    
+    # 如果提供了location参数，添加到请求参数中
+    if 'location' in specialParams:
+        params['location'] = json.dumps(specialParams['location'], ensure_ascii=False)
+    
+    # 记录当前使用的enc值用于调试
+    self.log.i(f"二维码签到使用ENC值: {specialParams['enc'][:8]}..., uid: {fixedParams['uid']}")
+    
     return params
 
   def signGesture(self, fixedParams, specialParams):
