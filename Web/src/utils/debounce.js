@@ -1,8 +1,8 @@
 export function debounce(func, duration) {
   let timer;
-  return (...args) => {
+  return function (...args) {
     clearTimeout(timer);
-    timer = setTimeout(function(){
+    timer = setTimeout(() => {
       func.call(this, ...args);
     }, duration);
   }
