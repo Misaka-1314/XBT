@@ -34,10 +34,6 @@ let router = useRouter();
 
 const active = ref('sign-lobby');
 
-const title = computed(() => {
-  return actives.find((item) => item.name === active.value).label;
-});
-
 watch(active, (newVal) => {
   router.push({ name: newVal });
 });
