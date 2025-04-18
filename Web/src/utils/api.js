@@ -16,15 +16,16 @@ const redirectToLogin = () => {
 
 // 创建 axios 实例
 export const api = axios.create({
-  baseURL: baseURL, // 替换为你的 API 地址
+  baseURL: baseURL,
   timeout: 60000,
+  headers: {
+    version
+  }
 });
+
 
 // 请求拦截器
 api.interceptors.request.use(async (config) => {
-  // 添加版本号
-  config.headers['version'] = version;
-
   // 检查是否忽略 token
   const shouldIgnore = IGNORE_TOKEN_URLS.some(url => config.url.includes(url));
   if (shouldIgnore) {
