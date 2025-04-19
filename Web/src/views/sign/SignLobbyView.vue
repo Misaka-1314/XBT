@@ -1,7 +1,14 @@
 <template>
-  <div style="display: flex;flex-direction: row;">
+  <div style="display: flex;flex-direction: row;align-items: center;">
     <h2 style="margin-right: 8px;">课程列表</h2>
     <var-loading size="small" v-show="isLoading" />
+    <div style="flex: 1;"></div>
+    <var-button type="primary" text icon-container @click="routeToConfig">
+      <var-icon name="cog-outline" color="var(--color-primary)"/>
+    </var-button>
+    <var-button type="primary" text icon-container @click="refreshPage">
+      <var-icon name="refresh" color="var(--color-primary)"/>
+    </var-button>
   </div>
   <var-paper v-for="clazz in selectedClasses" elevation="2" class="paper">
     <var-cell :title="clazz.name" :description="clazz.teacher" @click="() => { clazz.expanded = !clazz.expanded }"
@@ -16,7 +23,8 @@
     <var-collapse-transition :expand="clazz.expanded">
       <var-divider margin="0"></var-divider>
       <template v-for="active in clazz.actives">
-        <var-cell icon="map-marker" :title="SignType.fromId(active.signType).name" :description="active.subtitle" ripple :style="{color: active.isActive ? 'var(--color-primary)' : undefined}">
+        <var-cell icon="map-marker" :title="SignType.fromId(active.signType).name" :description="active.subtitle" ripple
+          :style="{ color: active.isActive ? 'var(--color-primary)' : undefined }">
           <template #extra>
             <div class="cell-extra">
               {{ getChineseStringByDatetime(new Date(active.startTime)) }}
@@ -34,9 +42,11 @@
 </template>
 
 <script setup>
+import router from '@/router';
 import api from '@/utils/api';
 import { activesLimit, SignType } from '@/utils/constants';
 import { getChineseStringByDatetime } from '@/utils/datetime';
+import { localJson } from '@/utils/localJson';
 import { Snackbar } from '@varlet/ui';
 import { computed, onMounted, reactive, ref } from 'vue';
 const isLoading = ref(false);
@@ -45,9 +55,18 @@ const selectedClasses = reactive(
 );
 
 async function refreshPage() {
+  const lastSelectedClasses = JSON.parse(JSON.stringify(selectedClasses));
+  const localSelectedClasses = localJson.get('selectedClasses');
+  if (localSelectedClasses) {
+    // 先给个缓存看着
+    selectedClasses.splice(0, selectedClasses.length, ...localSelectedClasses);
+    // expanded 尽量不动
+    selectedClasses.map((v, i) => {
+      v.expanded = i < lastSelectedClasses.length ? lastSelectedClasses[i].expanded : false;
+    })
+  }
   isLoading.value = true;
   const resp = (await api.post('getSelectedCourseAndActivityList', {})).data;
-
   if (!resp.suc) {
     Snackbar({
       type: 'warning',
@@ -58,7 +77,7 @@ async function refreshPage() {
   }
   const _selectedClasses = JSON.parse(JSON.stringify(resp.data));
   _selectedClasses.map((v, i) => {
-    v.expanded = i < selectedClasses.length ? selectedClasses[i].expanded : false;
+    v.expanded = i < lastSelectedClasses.length ? lastSelectedClasses[i].expanded : false;
     v.triggeredLimit = false;
     if (v.actives.length > activesLimit) {
       v.triggeredLimit = true;
@@ -87,12 +106,23 @@ async function refreshPage() {
     }
   })
   selectedClasses.splice(0, selectedClasses.length, ..._selectedClasses);
+  localJson.set('selectedClasses', selectedClasses);
   isLoading.value = false;
 }
 
 onMounted(() => {
   refreshPage();
 })
+
+function routeToConfig(){
+  router.push({
+    name: 'sign-config',
+    params: {
+      id: 1,
+      allCourses: selectedClasses
+    }
+  })
+}
 
 
 
