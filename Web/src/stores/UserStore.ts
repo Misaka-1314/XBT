@@ -35,6 +35,10 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const addUser = (user: User) => {
+    if (userList.value.findIndex(_user => _user.uid === user.uid) !== -1) {
+      changeCurrentUser(user.uid)
+      return;
+    }
     userList.value.push(user)
     changeCurrentUser(user.uid)
   }

@@ -42,7 +42,7 @@
       <div v-if="clazz.actives.length == 0" class="no-more">暂无签到活动</div>
     </var-collapse-transition>
   </var-paper>
-  <div v-if="selectedClasses.length == 0">暂无课程，请先点击 右上角 图标按钮选择需要开启代签的课程\n选课越少，加载越快，请确保仅选择上课可能会签到的课程！</div>
+  <div v-if="selectedClasses.length == 0">暂无已选择课程！<br>请先点击右上角设置图标按钮选择需要开启代签的课程。<br>选课越少，加载越快，请确保仅选择上课可能会签到的课程！</div>
 
 
 

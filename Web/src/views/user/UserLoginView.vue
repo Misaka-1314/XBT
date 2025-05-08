@@ -10,7 +10,7 @@
         style="width: 100%;" blur-color="rbga(0,0,0,0.9)" />
       <p style="font-weight: lighter;">注册即代表同意本网站收集您的第三方网站隐私信息。其中包括:
         姓名，手机号，密码，课程信息等。您的密码将仅用于登录第三方网站，已经过非对称加密处理，本网站保证您的密码不会进行明文存储以及传输。</p>
-      <var-button :loading="loading"  block type="primary" @click="onLogin">登录 / 注册</var-button>
+      <var-button :loading="loading" block type="primary" @click="onLogin">登录 / 注册</var-button>
     </div>
   </div>
 </template>
@@ -42,7 +42,7 @@ async function onLogin() {
     Snackbar.warning('密码长度不能小于6位');
     return;
   }
-  
+
   loading.value = true;
   const token = await encodeToken(_mobile, _password);
   const resp = (await api.post('login', { token: token })).data;
@@ -62,7 +62,8 @@ async function onLogin() {
     token: token,
   })
   loading.value = false;
-  router.back();
+  router.push({ path: '/' });
+  Snackbar.success('登录成功');
 }
 
 </script>
