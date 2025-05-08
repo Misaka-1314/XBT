@@ -44,7 +44,7 @@ import { useUserStore } from '@/stores/UserStore';
 import { proxyImage } from '@/utils/constants';
 import { Dialog, Snackbar } from '@varlet/ui';
 import { storeToRefs } from 'pinia';
-import { onBeforeMount, onMounted } from 'vue';
+import { onBeforeMount, onMounted, watch } from 'vue';
 
 const userStore = useUserStore();
 const currentUser = storeToRefs(userStore).currentUser;
@@ -92,12 +92,12 @@ async function logout(uid) {
   Snackbar.success('退出登录成功');
 }
 
-onMounted(() => {
-  if (currentUser.value == null) {
-    console.log('没有当前用户，跳转到登录页面');
+watch(currentUser, (newVal)=>{
+  if (newVal == null) {
     router.push({ name: 'user-login' })
     Snackbar.warning('请先登录')
   }
-})
+}, { immediate: true })
+
 </script>
 <style scoped></style>
