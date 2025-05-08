@@ -11,26 +11,34 @@ interface User {
 
 export const useUserStore = defineStore('user', () => {
   const userList = ref<User[]>([])
+
   const currentUser = computed(() => {
     return userList.value.length > 0 ? userList.value[0] : null
   })
+
   const otherUserList = computed(() => {
     return userList.value.length > 1 ? userList.value.slice(1) : []
   })
+
   const token = computed(() => {
     return currentUser.value ? currentUser.value.token : ''
   })
+
   const changeCurrentUser = (uid: Number) => {
     let index = userList.value.findIndex(user => user.uid === uid)
     if (index === -1) {
       throw new Error('uid not found')
     }
-    userList.value[0] = userList.value.splice(index, 1)[0]
+    const temp = userList.value[index]
+    userList.value[index] = userList.value[0]
+    userList.value[0] = temp
   }
+
   const addUser = (user: User) => {
     userList.value.push(user)
     changeCurrentUser(user.uid)
   }
+
   const removeUser = (uid: Number) => {
     let index = userList.value.findIndex(user => user.uid === uid)
     if (index === -1) {
@@ -48,6 +56,8 @@ export const useUserStore = defineStore('user', () => {
     token,
     changeCurrentUser,
     addUser,
-    removeUser
+    removeUser,
   }
+}, {
+  persist: true
 })

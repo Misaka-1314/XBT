@@ -24,3 +24,9 @@ export const SignType = {
 
 // 位置预设数组
 export const locationPreset = config_locationPreset;
+
+const imageProxyPrefix = baseURL + '/imageProxy?url=';
+
+export const proxyImage = (url) => {
+  return imageProxyPrefix + encodeURIComponent(url);
+}

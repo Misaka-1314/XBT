@@ -53,5 +53,6 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background-color: #fff;
-  contain: paint;}
+  contain: paint;
+}
 </style>
