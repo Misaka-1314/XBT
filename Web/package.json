@@ -11,7 +11,9 @@
   "dependencies": {
     "@varlet/touch-emulator": "^3.10.3",
     "@varlet/ui": "^3.10.2",
+    "@zxing/library": "^0.21.3",
     "axios": "^1.8.4",
+    "dayjs": "^1.11.13",
     "encrypt": "^0.0.1",
     "jsencrypt": "^3.3.2",
     "pinia": "^3.0.2",

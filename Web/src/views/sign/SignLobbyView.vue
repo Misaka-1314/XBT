@@ -12,24 +12,36 @@
     </var-button>
   </div>
 
-  <var-paper v-for="clazz in selectedClasses" elevation="2" class="paper">
+  <var-paper v-for="(clazz, index) in selectedClass" elevation="2" class="paper">
     <var-cell :title="clazz.name"
       :description="clazz.teacher.length > 24 ? clazz.teacher.substring(0, 16) + '...' : clazz.teacher"
-      @click="() => { clazz.expanded = !clazz.expanded }" ripple>
+      @click="() => { classStates[index].expanded = !classStates[index].expanded }" ripple>
       <template #icon>
-        <var-image width="42px" height="42px" fit="cover" radius="4" :src="proxyImage(clazz.icon)" style="margin-right: 8px;"/>
+        <div style="margin-right: 8px;">
+          <var-badge type="danger" :value="classStates[index].badgeCount" :hidden="classStates[index].badgeCount == 0">
+            <var-image width="42px" height="42px" fit="cover" radius="4" :src="proxyImage(clazz.icon)" />
+          </var-badge>
+        </div>
       </template>
       <template #extra>
         <div class="cell-extra">{{ clazz.actives.length > 0 ? getChineseStringByDatetime(new
           Date(clazz.actives[0].startTime)) : '' }}</div>
       </template>
     </var-cell>
-    <var-collapse-transition :expand="clazz.expanded">
+    <var-collapse-transition :expand="classStates[index].expanded">
       <var-divider margin="0"></var-divider>
-      <template v-for="active in clazz.actives">
-        <var-cell :icon="SignType.fromId(active.signType).icon" :title="SignType.fromId(active.signType).name"
-          :description="active.subtitle" ripple
-          :style="{ color: active.isActive ? 'var(--color-primary)' : undefined }">
+      <template v-for="(active, activeIndex) in clazz.actives">
+        <var-cell :title="SignType.fromId(active.signType).name"
+          :description="activeStates[index][activeIndex].subtitle" ripple
+          :style="{ color: active.endTime > Date.now() ? 'var(--color-primary)' : undefined }"
+          @click="onActiveClick(clazz, active)">
+          <template #icon>
+            <div style="margin-right: 12px;">
+              <var-badge type="danger" dot :hidden="!activeStates[index][activeIndex].isBadge">
+                <var-icon :name="SignType.fromId(active.signType).icon"></var-icon>
+              </var-badge>
+            </div>
+          </template>
           <template #extra>
             <div class="cell-extra">
               {{ getChineseStringByDatetime(new Date(active.startTime)) }}
@@ -38,14 +50,11 @@
         </var-cell>
         <var-divider margin="0" style="border-color: rgba(0,0,0,0.1);" hairline />
       </template>
-      <div v-if="clazz.triggeredLimit" class="no-more">仅显示最近{{ activesLimit }}条数据</div>
+      <div v-if="classStates[index].triggeredLimit" class="no-more">仅显示最近{{ activesLimit }}条数据</div>
       <div v-if="clazz.actives.length == 0" class="no-more">暂无签到活动</div>
     </var-collapse-transition>
   </var-paper>
-  <div v-if="selectedClasses.length == 0">暂无已选择课程！<br>请先点击右上角设置图标按钮选择需要开启代签的课程。<br>选课越少，加载越快，请确保仅选择上课可能会签到的课程！</div>
-
-
-
+  <div v-if="selectedClass.length == 0">暂无已选择课程！<br>请先点击右上角设置图标按钮选择需要开启代签的课程。<br>选课越少，加载越快，请确保仅选择上课可能会签到的课程！</div>
 </template>
 
 <script setup>
@@ -53,25 +62,54 @@ import router from '@/router';
 import api from '@/utils/api';
 import { activesLimit, proxyImage, SignType } from '@/utils/constants';
 import { getChineseStringByDatetime } from '@/utils/datetime';
-import { localJson } from '@/utils/localJson';
+import { getSignSubtitle } from '@/utils/sign';
 import { Snackbar } from '@varlet/ui';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useSelectedClassStore } from '@/stores/SelectedClassStore';
+import { storeToRefs } from 'pinia';
+
 const isLoading = ref(false);
-const selectedClasses = reactive(
-  []
-);
+const selectedClassStore = useSelectedClassStore();
+const { selectedClass } = storeToRefs(selectedClassStore);
+
+// UI state management
+const classStates = reactive([]);
+const activeStates = reactive([]);
+
+// Watch for changes in selectedClass and update UI states
+watch(selectedClass, (newClasses) => {
+  if (!newClasses) return;
+
+  // Initialize or update class states
+  const oldClassStates = [...classStates];
+  classStates.splice(0, classStates.length);
+  activeStates.splice(0, activeStates.length);
+
+  newClasses.forEach((clazz, classIndex) => {
+    // Initialize class state
+    classStates.push({
+      expanded: classIndex < oldClassStates.length ? oldClassStates[classIndex].expanded : false,
+      triggeredLimit: clazz.actives.length > activesLimit
+    });
+
+    // Initialize active states for this class
+    const classActiveStates = [];
+    let badgeCount = 0;
+    clazz.actives.forEach((active) => {
+      const isBadge = active.endTime > Date.now() && active.signRecord.source == 'none'
+      classActiveStates.push({
+        subtitle: getSignSubtitle(active),
+        isActive: active.endTime > Date.now(),
+        isBadge
+      });
+      if (isBadge) badgeCount++;
+    });
+    classStates[classStates.length - 1].badgeCount = badgeCount;
+    activeStates.push(classActiveStates);
+  });
+}, { immediate: true });
 
 async function refreshPage() {
-  const lastSelectedClasses = JSON.parse(JSON.stringify(selectedClasses));
-  const localSelectedClasses = localJson.get('selectedClasses');
-  if (localSelectedClasses) {
-    // 先给个缓存看着
-    selectedClasses.splice(0, selectedClasses.length, ...localSelectedClasses);
-    // expanded 尽量不动
-    selectedClasses.map((v, i) => {
-      v.expanded = i < lastSelectedClasses.length ? lastSelectedClasses[i].expanded : false;
-    })
-  }
   isLoading.value = true;
   const resp = (await api.post('getSelectedCourseAndActivityList', {})).data;
   if (!resp.suc) {
@@ -81,40 +119,22 @@ async function refreshPage() {
       duration: 2000,
     })
     isLoading.value = false;
+    return;
   }
+  // console.log(resp.data);
+
   const _selectedClasses = JSON.parse(JSON.stringify(resp.data));
-  _selectedClasses.map((v, i) => {
-    v.expanded = i < lastSelectedClasses.length ? lastSelectedClasses[i].expanded : false;
-    v.triggeredLimit = false;
+  _selectedClasses.forEach((v, i) => {
     if (v.actives.length > activesLimit) {
-      v.triggeredLimit = true;
       v.actives = v.actives.slice(0, activesLimit);
     }
-    let badgeCount = 0;
     for (let j = 0; j < v.actives.length; j++) {
       v.actives[j].classId = v.classId;
       v.actives[j].courseId = v.courseId;
-      let record = v.actives[j].signRecord;
-      let isActive = v.actives[j].endTime > Date.now();
-      let prefix = isActive ? (v.actives[j].endTime == 64060559999000 ? "进行中(手动结束)" : '进行中') : "已结束";
-      if (record.source == 'none') {
-        v.actives[j].subtitle = prefix;
-      } else if (record.source == 'self') {
-        v.actives[j].subtitle = prefix + '(本人签到)';
-      } else if (record.source == 'xxt') {
-        v.actives[j].subtitle = prefix + '(学习通)';
-      } else if (record.source == 'agent') {
-        v.actives[j].subtitle = prefix + '(' + record.sourceName + '代签)';
-      }
-      v.actives[j].isActive = isActive;
-      let isBadge = (record.source == 'none' && isActive);
-      v.actives[j].badge = isBadge;
-      if (isBadge) badgeCount++;
     }
-  })
-  selectedClasses.splice(0, selectedClasses.length, ..._selectedClasses);
-  localJson.set('selectedClasses', selectedClasses);
+  });
 
+  selectedClassStore.setSelectedClass(_selectedClasses);
   isLoading.value = false;
 }
 
@@ -125,17 +145,20 @@ onMounted(() => {
 function routeToConfig() {
   router.push({
     name: 'sign-config',
-    params: {
-      id: 1,
-      allCourses: selectedClasses
-    }
   })
 }
 
-
-
-
+function onActiveClick(clazz, active) {
+  router.push({
+    name: 'sign-detail',
+    query: {
+      classId: clazz.classId,
+      activeId: active.activeId
+    }
+  });
+}
 </script>
+
 <style scoped>
 .paper {
   display: flex;

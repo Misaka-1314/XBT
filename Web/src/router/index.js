@@ -2,7 +2,6 @@ import LobbyView from '@/views/LobbyView.vue'
 import SignConfigView from '@/views/sign/SignConfigView.vue'
 import SignDetailView from '@/views/sign/SignDetailView.vue'
 import SignLobbyView from '@/views/sign/SignLobbyView.vue'
-import SignProgressView from '@/views/sign/SignProgressView.vue'
 import UserLobbyView from '@/views/user/UserLobbyView.vue'
 import UserLoginView from '@/views/user/UserLoginView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -41,11 +40,6 @@ const router = createRouter({
       path: '/sign/detail',
       name: 'sign-detail',
       component: SignDetailView,
-    },
-    {
-      path: '/sign/progress',
-      name: 'sign-progress',
-      component: SignProgressView,
     },
     {
       path: '/user/login',
