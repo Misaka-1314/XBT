@@ -26,13 +26,12 @@ const form = reactive({
 function onScaned(text) {
   if (!text.includes("mobilelearn.chaoxing.com")) {
     form.tipMsg = '请扫描学习通二维码'
-    return false
+    return
   }
   const enc = text.split('&enc=')[1].split('&')[0];
   const c = text.split('&c=')[1].split('&')[0];
   form.tipMsg = '扫码成功'
   props.signCallBack({ enc, c })
-  return true
 }
 
 
@@ -64,9 +63,7 @@ const decodeFromInputVideoFunc = (firstDeviceId) => {
   codeReader.decodeFromInputVideoDeviceContinuously(firstDeviceId, 'video', (result, err) => {
     form.tipMsg = '正在尝试识别...' // 提示信息
     if (result) {
-      if (onScaned(result.getText())) {
-        codeReader.stopContinuousDecode() // 关闭扫码功能
-      }
+      onScaned(result.getText())
     }
     if (err && !err) {
       form.tipMsg = '识别失败'

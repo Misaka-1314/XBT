@@ -1,5 +1,5 @@
 <template>
-  <SignProgressDialog />
+  <SignProgressDialog :key="dialogKey" :display="displayDialog" :data="signData" @closeDialog="closeDialog"/>
   <div style="overflow-y: auto;height: 100%;width: 100%;">
     <div style="height: fit-content;width: 100%;padding: 8px;box-sizing: border-box;">
       <div style="display: flex;flex-direction: row;align-items: center;">
@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, reactive } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useSelectedClassStore } from '@/stores/SelectedClassStore';
 import { storeToRefs } from 'pinia';
@@ -66,6 +66,9 @@ const route = useRoute();
 const selectedClassStore = useSelectedClassStore();
 const isLoading = ref(false);
 const classmates = ref([]);
+const displayDialog = ref(false);
+const signData = reactive({});
+const dialogKey = ref(Date.now());
 
 const signBoards = {
   [SignType.code.id]: CodeBoard,
@@ -98,6 +101,11 @@ const description = computed(() => {
   return `${startTime} | ${status} | ${source}`;
 })
 
+function closeDialog(){
+  displayDialog.value = false;
+  dialogKey.value = Date.now() + Math.random();
+}
+
 function formatMobile(mobile) {
   const str = mobile.toString();
   return str.substring(0, 3) + '****' + str.substring(7);
@@ -111,8 +119,28 @@ function toggleClassmateSelection(uid) {
 }
 
 function signCallBack(data) {
-  console.log(data);
-
+  if (displayDialog.value) {
+    return;
+  }
+  if (isLoading.value) {
+    Snackbar.warning('加载同学列表中，请稍后');
+    return;
+  }
+  signData.signType = currentActive.value.signType;
+  signData.fixedParams = {
+    courseId: currentClass.value.courseId,
+    classId: currentClass.value.classId,
+    activeId: currentActive.value.activeId,
+    ifRefreshEwm: currentActive.value.ifRefreshEwm,
+    uid: null, // 历史遗留
+  }
+  signData.specialParams = data;
+  signData.classmates = classmates.value.filter(mate => mate.isSelected).map(mate => ({
+    uid: mate.uid,
+    name: mate.name,
+    mobile: mate.mobile
+  }));  
+  displayDialog.value = true;
 }
 
 async function loadClassmates() {

@@ -12,7 +12,7 @@ interface Active {
   classId: String,
   courseId: String,
   endTime: Number,
-  ifRefreshEw: Boolean,
+  ifRefreshEwm: Boolean,
   name: String,
   signType: Number,
   startTime: Number,
