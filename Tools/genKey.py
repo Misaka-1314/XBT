@@ -15,3 +15,5 @@ with open("./Client/assets/keys/public.pem", "wb") as f:
     f.write(public_pem)
 with open("./Server/keys/public.pem", "wb") as f:
     f.write(public_pem)
+with open("./Web/public/keys/public.pem", "wb") as f:
+    f.write(public_pem)
