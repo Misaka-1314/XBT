@@ -1,41 +1,47 @@
 
 <center><div align="center">
 
-<img src="Images/Icons/icon.png" width = 300 height = 300 /></img>
+<img src="Images/Icons/icon.png" width = 256 height = 256 /></img>
 # 学不通
 ### 一人签到，全寝睡觉
 </div></center>
 
-> `temp-android-only` 分支由 `52xiaohui` pr，其对扫码签到场景进行了优化【[PR详情](https://github.com/EnderWolf006/XBT/pull/6)】，但因无法适配Web暂未合并至主分支。<br>
-> 同时，`XBT-Web` 原生实现正在开发中，使用 `Vue3` + `Varlet`，将大幅增加前端使用体验，敬请期待。
 
 ## 软件功能
-- 自动识别同班同学
-- 可选的代签生效课程
-- 用户白名单机制(需手动在UserPerm添加)
-- 帮助同使用本软件的同班同学签到
+- 只需1人即可代签n人, 帮助同使用本软件的同班同学签到
+- 可选的代签生效课程, 自动识别同班同学
 - 支持签到码/二维码/手势/位置(可自选)/普通签到
-- 支持安卓客户端以及web网页端
+- 用户白名单机制(需手动在UserPerm添加)
+- 提供 `Web前端版本` 以及 `Flutter客户端` 版本
 
 ## 技术栈
-- 大前端: Flutter(Dart)
-- 后端: Python(Flask, Pymysql)
-- 数据库: Mysql
+- 后端: Python，Flask, Mysql
+- 前端: Vue, Vite, Pinia, Vue Router, Varlet, JS & TS
+- 客户端: Flutter, Dart, Dio
+
+## 实机截屏 - Web
+| **签到主页** | **选课配置页** | **用户设置页** | **登录页** |
+|:---:|:---:|:---:|:---:|
+|<div align="center"> <img src="Images/w1.jpg">|<div align="center"> <img src="Images/w2.jpg">|<div align="center"> <img src="Images/w3.jpg">|<div align="center"> <img src="Images/w10.jpg">|
+| **普通签到** | **手势签到** | **位置签到** | **签到码签到** |
+|<div align="center"> <img src="Images/w4.jpg">|<div align="center"> <img src="Images/w5.jpg">|<div align="center"> <img src="Images/w6.jpg">|<div align="center"> <img src="Images/w7.jpg">|
+| **二维码签到** | **签到结果页** |
+|<div align="center"> <img src="Images/w8.jpg">|<div align="center"> <img src="Images/w9.jpg">|
+
+## 实机截屏 - Android
+| **签到主页** | **选课配置页** | **用户设置页** | **登录页** |
+|:---:|:---:|:---:|:---:|
+|<div align="center"> <img src="Images/f1.jpg">|<div align="center"> <img src="Images/f2.jpg">|<div align="center"> <img src="Images/f3.jpg">|<div align="center"> <img src="Images/f10.jpg">|
+| **普通签到** | **手势签到** | **位置签到** | **签到码签到** |
+|<div align="center"> <img src="Images/f4.jpg">|<div align="center"> <img src="Images/f5.jpg">|<div align="center"> <img src="Images/f6.jpg">|<div align="center"> <img src="Images/f7.jpg">|
+| **二维码签到** | **签到结果页** |
+|<div align="center"> <img src="Images/f8.jpg">|<div align="center"> <img src="Images/f9.jpg">|
 
 ## 交流反馈
 喜欢本项目的话，求点亮Star🙏
 - [QQ群: 250369908](https://qm.qq.com/cgi-bin/qm/qr?k=yxbcu6vNZm3JvJElnCRHGbMgmNOADF6H&jump_from=webapi&authKey=+4fa+h7XTvKdeECaauj7wEFLOhVAkrtFNUh0VMcC3bP8eAeUqiXwctprZJOFHfkh)
 - [Telegram: XueBT](https://t.me/XueBT)
 
-
-## 实机截屏
-| **签到主页** | **选课配置页** | **用户设置页** | **登录页** |
-|:---:|:---:|:---:|:---:|
-|<div align="center"> <img src="Images/1.jpg">|<div align="center"> <img src="Images/2.jpg">|<div align="center"> <img src="Images/3.jpg">|<div align="center"> <img src="Images/10.jpg">|
-| **普通签到** | **手势签到** | **位置签到** | **签到码签到** |
-|<div align="center"> <img src="Images/4.jpg">|<div align="center"> <img src="Images/5.jpg">|<div align="center"> <img src="Images/6.jpg">|<div align="center"> <img src="Images/7.jpg">|
-| **二维码签到** | **签到结果页** |
-|<div align="center"> <img src="Images/9.jpg">|<div align="center"> <img src="Images/8.jpg">|
 
 ## 食用教程
 > 本教程稍有难度，需一定的计算机基础，如抱着“下载直接用”, “网上找个资源圈钱”的心态阅读此说明，可以洗洗睡了。
