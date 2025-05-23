@@ -89,12 +89,13 @@ watch(selectedClass, (newClasses) => {
     // Initialize class state
     classStates.push({
       expanded: classIndex < oldClassStates.length ? oldClassStates[classIndex].expanded : false,
-      triggeredLimit: oldClassStates[classIndex]?.triggeredLimit || false,
+      triggeredLimit: clazz.actives.length > activesLimit,
     });
     
     // Initialize active states for this class
     const classActiveStates = [];
     let badgeCount = 0;
+    clazz.actives = clazz.actives.slice(0, activesLimit);
     clazz.actives.forEach((active) => {
       const isBadge = active.endTime > Date.now() && active.signRecord.source == 'none'
       classActiveStates.push({
@@ -125,10 +126,6 @@ async function refreshPage() {
 
   const _selectedClasses = JSON.parse(JSON.stringify(resp.data));
   _selectedClasses.forEach((v, i) => {
-    if (v.actives.length > activesLimit) {
-      v.actives = v.actives.slice(0, activesLimit);
-      classStates[i].triggeredLimit = true;
-    }
     for (let j = 0; j < v.actives.length; j++) {
       v.actives[j].classId = v.classId;
       v.actives[j].courseId = v.courseId;
