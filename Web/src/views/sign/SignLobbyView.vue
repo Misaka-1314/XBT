@@ -89,9 +89,9 @@ watch(selectedClass, (newClasses) => {
     // Initialize class state
     classStates.push({
       expanded: classIndex < oldClassStates.length ? oldClassStates[classIndex].expanded : false,
-      triggeredLimit: clazz.actives.length > activesLimit
+      triggeredLimit: oldClassStates[classIndex]?.triggeredLimit || false,
     });
-
+    
     // Initialize active states for this class
     const classActiveStates = [];
     let badgeCount = 0;
@@ -127,6 +127,7 @@ async function refreshPage() {
   _selectedClasses.forEach((v, i) => {
     if (v.actives.length > activesLimit) {
       v.actives = v.actives.slice(0, activesLimit);
+      classStates[i].triggeredLimit = true;
     }
     for (let j = 0; j < v.actives.length; j++) {
       v.actives[j].classId = v.classId;

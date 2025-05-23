@@ -4,10 +4,10 @@ import SignDetailView from '@/views/sign/SignDetailView.vue'
 import SignLobbyView from '@/views/sign/SignLobbyView.vue'
 import UserLobbyView from '@/views/user/UserLobbyView.vue'
 import UserLoginView from '@/views/user/UserLoginView.vue'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
