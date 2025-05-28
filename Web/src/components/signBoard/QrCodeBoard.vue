@@ -363,15 +363,16 @@ watch(() => props.enableSmartMonitoring, (newVal) => {
 
 .tip {
   position: absolute;
-  bottom: 120px; /* 在位置控件上方 */
+  top: 20px;
   left: 50%;
+  white-space: nowrap;
   transform: translateX(-50%);
   color: white;
   font-size: 16px;
   text-align: center;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
   z-index: 114; /* 提高层级，确保在位置控件上方 */
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
   padding: 8px 16px;
   border-radius: 20px;
   backdrop-filter: blur(10px);
@@ -384,7 +385,7 @@ watch(() => props.enableSmartMonitoring, (newVal) => {
   left: 16px;
   right: 16px;
   z-index: 113;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+  background: rgba(0, 0, 0, 0.3);
   padding: 16px;
   border-radius: 12px;
   backdrop-filter: blur(10px);
@@ -549,28 +550,6 @@ watch(() => props.enableSmartMonitoring, (newVal) => {
   text-align: right;
 }
 
-/* 响应式设计 */
-@media (max-width: 480px) {
-  .zoom-control {
-    top: 15px;
-    left: 15px;
-    right: 15px;
-  }
-
-  .zoom-slider-container {
-    padding: 10px 16px;
-  }
-
-  .zoom-label, .zoom-value {
-    font-size: 12px;
-  }
-
-  .tip {
-    bottom: 15px;
-    font-size: 14px;
-    padding: 6px 12px;
-  }
-}
 
 /* 暗黑模式适配 */
 @media (prefers-color-scheme: dark) {
