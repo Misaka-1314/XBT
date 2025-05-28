@@ -2,3 +2,5 @@
 Server/venv
 Client/android
 example/
+*.key
+*.crt

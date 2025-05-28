@@ -2,13 +2,12 @@ import LobbyView from '@/views/LobbyView.vue'
 import SignConfigView from '@/views/sign/SignConfigView.vue'
 import SignDetailView from '@/views/sign/SignDetailView.vue'
 import SignLobbyView from '@/views/sign/SignLobbyView.vue'
-import SignProgressView from '@/views/sign/SignProgressView.vue'
 import UserLobbyView from '@/views/user/UserLobbyView.vue'
 import UserLoginView from '@/views/user/UserLoginView.vue'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -21,12 +20,12 @@ const router = createRouter({
       component: LobbyView,
       children: [
         {
-          name: 'lobby-sign',
+          name: 'sign-lobby',
           path: 'sign',
           component: SignLobbyView,
         },
         {
-          name: 'lobby-user',
+          name: 'user-lobby',
           path: 'user',
           component: UserLobbyView,
         }
@@ -43,11 +42,6 @@ const router = createRouter({
       component: SignDetailView,
     },
     {
-      path: '/sign/progress',
-      name: 'sign-progress',
-      component: SignProgressView,
-    },
-    {
       path: '/user/login',
       name: 'user-login',
       component: UserLoginView,
@@ -60,7 +54,7 @@ router.beforeEach((to, from) => {
     return { name: 'lobby' }
   }
   if (to.path === '/lobby') {
-    return { name: 'lobby-sign' }
+    return { name: 'sign-lobby' }
   }
 })
 
