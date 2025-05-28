@@ -1,6 +1,6 @@
 <template>
   <var-button @click="routeToLogin" type="primary" round icon-container
-    style="width: 48px;height: 48px;position: absolute;bottom: 66px;right: 16px;">
+    style="width: 48px;height: 48px;position: absolute;bottom: 70px;right: 16px;z-index: 5;">
     <var-icon name="plus" />
   </var-button>
   <template v-if="currentUser != null">
@@ -37,11 +37,15 @@
       </var-paper>
     </template>
   </template>
+  <div class="footer">
+    <div>当前版本: v {{ version }}</div>
+    <a @click.prevent="openGithub">https://github.com/EnderWolf006/XBT</a>
+  </div>
 </template>
 <script setup>
 import router from '@/router';
 import { useUserStore } from '@/stores/UserStore';
-import { proxyImage } from '@/utils/constants';
+import { proxyImage, version } from '@/utils/constants';
 import { Dialog, Snackbar } from '@varlet/ui';
 import { storeToRefs } from 'pinia';
 import { onBeforeMount, onMounted, watch } from 'vue';
@@ -92,12 +96,32 @@ async function logout(uid) {
   Snackbar.success('退出登录成功');
 }
 
-watch(currentUser, (newVal)=>{
+watch(currentUser, (newVal) => {
   if (newVal == null) {
     router.push({ name: 'user-login' })
     Snackbar.warning('请先登录')
   }
 }, { immediate: true })
 
+function openGithub() {
+  window.open('https://github.com/EnderWolf006/XBT')
+}
+
 </script>
-<style scoped></style>
+<style scoped>
+.footer {
+  position: fixed;
+  bottom: 50px;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.footer a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+</style>
