@@ -363,7 +363,7 @@ watch(() => props.enableSmartMonitoring, (newVal) => {
 
 .tip {
   position: absolute;
-  top: 20px;
+  bottom: 50px;
   left: 50%;
   white-space: nowrap;
   transform: translateX(-50%);
@@ -372,10 +372,11 @@ watch(() => props.enableSmartMonitoring, (newVal) => {
   text-align: center;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
   z-index: 114; /* 提高层级，确保在位置控件上方 */
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   padding: 8px 16px;
   border-radius: 20px;
   backdrop-filter: blur(10px);
+  pointer-events: none;
 }
 
 /* 位置选择区域样式 */

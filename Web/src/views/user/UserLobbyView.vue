@@ -38,7 +38,7 @@
     </template>
   </template>
   <div class="footer">
-    <div>当前版本: v {{ version }}</div>
+    <div>当前版本: {{ version }}</div>
     <a @click.prevent="openGithub">https://github.com/EnderWolf006/XBT</a>
   </div>
 </template>
