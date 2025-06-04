@@ -1,5 +1,5 @@
 // 软件版本号
-export const version = "1.1.0";
+export const config_version = "1.1.0";
 
 // 后端地址
 export const config_baseURL = "https://api.xbt.example.com";
