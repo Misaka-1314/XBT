@@ -80,7 +80,6 @@ const classmates = ref([]);
 const displayDialog = ref(false);
 const signData = reactive({});
 const dialogKey = ref(Date.now());
-// 新增：二维码组件引用和当前签到组件引用
 const qrCodeBoardRef = ref(null);
 const currentSignBoard = ref(null);
 

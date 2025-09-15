@@ -5,6 +5,9 @@
         <h2 style="margin-right: 8px;">配置生效课程</h2>
         <var-loading size="small" v-show="isLoading" />
         <div style="flex: 1;"></div>
+        <var-button type="primary" text icon-container @click="refreshPage(true)">
+          <var-icon name="refresh" color="var(--color-primary)" />
+        </var-button>
         <var-button type="primary" @click="onDone">完成</var-button>
       </div>
     </div>
@@ -47,10 +50,12 @@ const setCourseSelectState = async () => {
 };
 
 // 刷新页面
-async function refreshPage() {
+async function refreshPage(sync = false) {
   isLoading.value = true;
   try {
-    const resp = await api.post('getAllCourse', {});
+    const resp = await api.post('getAllCourse', {
+      sync: sync
+    });
     if (!resp.data.suc) {
       Snackbar.warning(resp.data.msg);
       return;
